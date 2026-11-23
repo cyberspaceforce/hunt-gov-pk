@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Hunt Gov Pk — Government Jobs in Pakistan</title>
+  <meta name="description" content="Current government job advertisements collected from official recruitment websites in Pakistan.">
+  <link rel="icon" href="assets/images/favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/components.css">
+  <link rel="stylesheet" href="css/responsive.css">
+</head>
+<body data-page="jobs">
+  <div data-site-header></div>
+
+  <main id="main">
+    <section class="page-hero">
+      <div class="container">
+        <h1>Government jobs, straight from the official source</h1>
+        <p>Current advertisements collected from official recruitment websites — with qualification, pay scale, posts and closing dates in one place.</p>
+        <form class="jobs-search-bar" id="search-form" role="search">
+          <div class="input-icon">
+            <i data-lucide="search"></i>
+            <label class="sr-only" for="q">Search jobs</label>
+            <input class="input" id="q" type="search" placeholder="Job title, department, qualification or case no." autocomplete="off">
+          </div>
+          <button class="btn btn-primary" type="submit">Search</button>
+        </form>
+        <div class="hero-summary" id="hero-summary"></div>
+      </div>
+    </section>
+
+    <div class="container jobs-main">
+      <div class="notice" id="stale-notice" hidden></div>
+
+      <div class="jobs-toolbar">
+        <div class="jobs-toolbar__filters">
+          <label class="sr-only" for="f-source">Source</label>
+          <select class="select" id="f-source"></select>
+          <label class="sr-only" for="f-department">Department</label>
+          <select class="select" id="f-department"></select>
+          <label class="sr-only" for="f-scale">Pay scale</label>
+          <select class="select" id="f-scale"></select>
+          <label class="switch"><input type="checkbox" id="f-closed"><span>Include closed</span></label>
+          <label class="switch"><input type="checkbox" id="f-it"><span>Computer Science &amp; IT</span></label>
+          <label class="switch"><input type="checkbox" id="f-new"><span>New departments</span></label>
+        </div>
+        <div class="jobs-toolbar__right">
+          <label class="sr-only" for="f-sort">Sort</label>
+          <select class="select" id="f-sort"></select>
+        </div>
+      </div>
+
+      <div class="results-toolbar">
+        <p class="results-count" id="results-count" aria-live="polite"></p>
+        <button class="btn btn-ghost btn-sm" type="button" id="reset-filters" data-reset hidden><i data-lucide="rotate-ccw"></i>Clear filters</button>
+      </div>
+
+      <div class="job-list" id="job-list"></div>
+    </div>
+  </main>
+
+  <div data-site-footer></div>
+
+  <script defer src="https://unpkg.com/lucide@0.460.0/dist/umd/lucide.min.js"></script>
+  <script src="data/jobs.js" onerror="console.warn('data/jobs.js not found — run: python scraper/fetch_jobs.py')"></script>
+  <script src="js/utils.js"></script>
+  <script src="js/components.js"></script>
+  <script src="js/live.js"></script>
+  <script src="js/jobs.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Official Advertisements — Hunt Gov Pk</title>
+  <meta name="description" content="Official government job advertisement PDFs and notices from PPSC, KPPSC, BPSC, OTS and other recruitment bodies in Pakistan.">
+  <link rel="icon" href="assets/images/favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/components.css">
+  <link rel="stylesheet" href="css/responsive.css">
+</head>
+<body data-page="ads">
+  <div data-site-header></div>
+
+  <main id="main">
+    <section class="page-hero">
+      <div class="container">
+        <h1>Official advertisements</h1>
+        <p>Advertisement PDFs, addendums and notices published by public service commissions and testing agencies — opened directly from the official source.</p>
+        <form class="jobs-search-bar" id="search-form" role="search">
+          <div class="input-icon">
+            <i data-lucide="search"></i>
+            <label class="sr-only" for="q">Search advertisements</label>
+            <input class="input" id="q" type="search" placeholder="Advertisement no., department or keyword" autocomplete="off">
+          </div>
+          <button class="btn btn-primary" type="submit">Search</button>
+        </form>
+      </div>
+    </section>
+
+    <div class="container ads-layout ads-main">
+      <div>
+        <div class="jobs-toolbar">
+          <div class="jobs-toolbar__filters">
+            <label class="sr-only" for="f-source">Source</label>
+            <select class="select" id="f-source"></select>
+            <label class="switch"><input type="checkbox" id="f-new"><span>New departments only</span></label>
+          </div>
+        </div>
+        <div class="results-toolbar">
+          <p class="results-count" id="results-count" aria-live="polite"></p>
+          <button class="btn btn-ghost btn-sm" type="button" id="reset-filters" data-reset hidden><i data-lucide="rotate-ccw"></i>Clear filters</button>
+        </div>
+        <div class="ad-list" id="ad-list"></div>
+      </div>
+
+      <aside class="ads-aside">
+        <div class="card card-pad">
+          <h3 class="card-title"><i data-lucide="radar"></i>Watching new departments</h3>
+          <p class="text-sm muted">Recently created government bodies. Every refresh checks all sources for their jobs and advertisements.</p>
+          <ul class="watch-list" id="watch-list"></ul>
+          <p class="text-sm muted" style="margin-top:12px">NCCIA's own website blocks automated access, so its posts are picked up when advertised via PPSC, OTS or other tracked sources.</p>
+        </div>
+        <div class="card card-pad">
+          <h3 class="card-title"><i data-lucide="shield-check"></i>Sources</h3>
+          <ul class="watch-list" id="source-list"></ul>
+        </div>
+      </aside>
+    </div>
+  </main>
+
+  <div data-site-footer></div>
+
+  <script defer src="https://unpkg.com/lucide@0.460.0/dist/umd/lucide.min.js"></script>
+  <script src="data/jobs.js" onerror="console.warn('data/jobs.js not found — run: python scraper/fetch_jobs.py')"></script>
+  <script src="js/utils.js"></script>
+  <script src="js/components.js"></script>
+  <script src="js/live.js"></script>
+  <script src="js/ads.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>

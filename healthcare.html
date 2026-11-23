@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Hospital &amp; Healthcare Jobs — Hunt Gov Pk</title>
+  <meta name="description" content="Current jobs at major hospitals in Pakistan, including Computer Science & IT roles at Shaukat Khanum and PKLI.">
+  <link rel="icon" href="assets/images/favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/components.css">
+  <link rel="stylesheet" href="css/responsive.css">
+</head>
+<body data-page="health">
+  <div data-site-header></div>
+
+  <main id="main">
+    <section class="page-hero">
+      <div class="container">
+        <h1>Hospital &amp; healthcare jobs</h1>
+        <p>Current openings at major hospitals — from Computer Science &amp; IT roles to medical, nursing and research posts — taken from each hospital's own careers portal.</p>
+        <form class="jobs-search-bar" id="search-form" role="search">
+          <div class="input-icon">
+            <i data-lucide="search"></i>
+            <label class="sr-only" for="q">Search hospital jobs</label>
+            <input class="input" id="q" type="search" placeholder="e.g. developer, network, data analyst, radiology" autocomplete="off">
+          </div>
+          <button class="btn btn-primary" type="submit">Search</button>
+        </form>
+        <div class="hero-summary" id="hero-summary"></div>
+      </div>
+    </section>
+
+    <div class="container jobs-main health-main">
+      <div class="field-tabs" id="field-tabs" role="tablist" aria-label="Job field"></div>
+
+      <div class="jobs-toolbar">
+        <div class="jobs-toolbar__filters">
+          <label class="sr-only" for="f-hospital">Hospital</label>
+          <select class="select" id="f-hospital"></select>
+          <label class="sr-only" for="f-city">City</label>
+          <select class="select" id="f-city"></select>
+          <label class="switch"><input type="checkbox" id="f-closed"><span>Include closed</span></label>
+        </div>
+      </div>
+
+      <div class="results-toolbar">
+        <p class="results-count" id="results-count" aria-live="polite"></p>
+        <button class="btn btn-ghost btn-sm" type="button" id="reset-filters" data-reset hidden><i data-lucide="rotate-ccw"></i>Clear filters</button>
+      </div>
+
+      <div class="job-list" id="job-list"></div>
+    </div>
+  </main>
+
+  <div data-site-footer></div>
+
+  <script defer src="https://unpkg.com/lucide@0.460.0/dist/umd/lucide.min.js"></script>
+  <script src="data/jobs.js" onerror="console.warn('data/jobs.js not found — run: python scraper/fetch_jobs.py')"></script>
+  <script src="js/utils.js"></script>
+  <script src="js/components.js"></script>
+  <script src="js/live.js"></script>
+  <script src="js/healthcare.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
