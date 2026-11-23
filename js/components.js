@@ -73,7 +73,7 @@
       }).join("");
       const updated =
         '<button type="button" class="refresh-btn" data-refresh title="' +
-          (liveOn ? "Refresh now · jobs also refresh automatically every 5 minutes" : "Reload data from data/jobs.js") + '">' +
+          (liveOn ? "Fetch the latest jobs from all official sources" : "Reload data from data/jobs.js") + '">' +
           ui.icon("refresh-cw") + '<span class="refresh-btn__label" data-updated>' + ui.updatedText() + "</span></button>" +
         githubLink("github-link github-link--header");
       return (

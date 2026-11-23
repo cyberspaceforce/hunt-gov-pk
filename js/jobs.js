@@ -116,7 +116,7 @@
     const posts = open.reduce(function (s, j) { return s + (j.posts || 0); }, 0);
     const sources = u.sources.filter(function (s) { return s.jobs && s.group !== "healthcare"; }).map(function (s) {
       return '<a href="' + esc(s.url) + '" target="_blank" rel="noopener noreferrer" title="' + esc(s.name) + '">' + esc(s.id) + "</a>" +
-        (s.ok ? "" : ' <span class="badge badge-closing">fetch failed — last saved data</span>');
+        (s.ok ? "" : ' <span class="badge badge-closing">not updated — showing earlier data</span>');
     }).join(", ");
 
     els.summary.innerHTML =

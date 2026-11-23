@@ -46,6 +46,7 @@ import os
 import re
 import sys
 import time
+import urllib.error
 import urllib.parse
 import urllib.request
 from concurrent.futures import ThreadPoolExecutor, as_completed
@@ -115,10 +116,28 @@ def make_opener():
     return opener
 
 
+RETRIES = 2            # extra attempts after a transient network error
+RETRY_WINDOW = 25      # only retry if the failed attempt(s) took less than this many seconds
+
+
+def is_transient(exc):
+    """Network hiccups worth retrying: timeouts, resets, TLS handshake stalls, HTTP 5xx/429."""
+    if isinstance(exc, urllib.error.HTTPError):
+        return exc.code >= 500 or exc.code == 429
+    return isinstance(exc, (urllib.error.URLError, TimeoutError, ConnectionError, OSError))
+
+
 def fetch(opener, url, data=None):
     body = urllib.parse.urlencode(data).encode() if data is not None else None
-    with opener.open(url, body, timeout=TIMEOUT) as resp:
-        return resp.geturl(), resp.read().decode("utf-8", "ignore")
+    started = time.time()
+    for attempt in range(RETRIES + 1):
+        try:
+            with opener.open(url, body, timeout=TIMEOUT) as resp:
+                return resp.geturl(), resp.read().decode("utf-8", "ignore")
+        except Exception as exc:
+            if attempt == RETRIES or not is_transient(exc) or time.time() - started > RETRY_WINDOW:
+                raise
+            time.sleep(1.5 * (attempt + 1))
 
 
 def get(url):

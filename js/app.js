@@ -1,7 +1,7 @@
 /* ==========================================================================
    Hunt Gov Pk — App bootstrap
    Renders the shared header/footer, runs the page module registered at
-   HN.pages[<body data-page>], and wires the Refresh button + auto-refresh.
+   HN.pages[<body data-page>], and wires the refresh button and the first-load refresh.
    Page modules may set HN.pageRefresh() to re-render when new data arrives.
    ========================================================================== */
 (function (HN) {
@@ -32,7 +32,7 @@
     window.addEventListener("hn:refresh-end", function (e) {
       setButton("idle", ui.updatedText());
       const r = e.detail;
-      if (!r.manual) return;          // auto-refresh every 5 min stays silent
+      if (r.silent && r.ok && !r.failed.length) return;   // quiet on first-load refresh unless something failed
       if (!r.ok) {
         ui.toast("Couldn't reach the official sources — showing saved data", "triangle-alert");
       } else if (r.failed.length) {
@@ -61,7 +61,7 @@
     if (typeof init === "function") init();
 
     wireRefresh();
-    live.start();
+    live.refreshOnFirstLoad();
 
     ui.refreshIcons();
     // Lucide is loaded with "defer" from a CDN — render icons again once it's ready.

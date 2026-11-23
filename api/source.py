@@ -5,7 +5,7 @@ Vercel serverless function: live data for ONE source.
     GET /api/source?id=PPSC    -> {"id", "ok", "checkedAt", "jobs": [...], "ads": [...], ...}
 
 The browser calls this once per source (in parallel) when the user presses
-Refresh, and automatically every 5 minutes. Responses are cached on Vercel's
+Refresh (manual only). Responses are cached on Vercel's
 CDN for 5 minutes (s-maxage=300), so many visitors share one fetch and the
 government websites are not hit on every page view.
 

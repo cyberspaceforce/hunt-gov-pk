@@ -14,9 +14,9 @@ Browsers can't read other websites directly (CORS), so the scraping runs in Pyth
 
 | Where | How jobs are refreshed |
 | --- | --- |
-| **Vercel (production)** | **Refresh** button in the header + **automatic refresh every 5 minutes** while the page is open. The browser calls the serverless function `/api/source?id=<SOURCE>` for all sources in parallel (≈ 20–30 s). Responses are cached on Vercel's CDN for 5 minutes, so visitors share one fetch per source and government sites aren't overloaded. The manual button bypasses the cache (max. one fresh fetch per source per minute). The newest data is remembered in the browser (localStorage) for the next visit. |
-| **Local preview** | `python serve.py` → http://localhost:8000 — works exactly like Vercel (button, auto-refresh, API, 5-min cache). |
-| **Opening `index.html` directly** | No server, so the button just reloads the page. Update the data with the CLI below. |
+| **Vercel (production)** | **Manual only:** click the refresh icon next to "Updated … ago" in the header. The browser calls the serverless function `/api/source?id=<SOURCE>` for all sources in parallel (≈ 20–40 s). Each click fetches fresh data, but clicks within the same minute share one fetch per source on Vercel's CDN, so government sites aren't overloaded. The newest data is remembered in the browser (localStorage) for the next visit. |
+| **Local preview** | `python serve.py` → http://localhost:8000 — works exactly like Vercel (refresh icon, API, CDN-style cache). |
+| **Opening `index.html` directly** | No server, so the refresh icon just reloads the page. Update the data with the CLI below. |
 
 The pages always open instantly from the bundled snapshot `data/jobs.js`, then update live.
 If a source is down, its last good data is kept and the toast says which source failed.

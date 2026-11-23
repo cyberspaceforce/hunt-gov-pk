@@ -3,11 +3,10 @@
    --------------------------------------------------------------------------
    When the site is served over http(s) (e.g. on Vercel), jobs are refreshed
    from the serverless function /api/source?id=<SOURCE>, one request per
-   source, all in parallel:
-
-     - manually, with the Refresh button in the header (forces fresh data)
-     - automatically every 5 minutes while the tab is open (uses the CDN's
-       5-minute cache, so visitors share one fetch per source)
+   source, all in parallel. It runs:
+     - once when a visitor first opens the site (once per browser tab session,
+       so moving between pages doesn't refetch everything), and
+     - whenever the user clicks the refresh icon next to "Updated … ago".
 
    Opened directly from disk (file://) there is no server, so the button just
    reloads the page to pick up a newly generated data/jobs.js.
@@ -22,7 +21,6 @@
   "use strict";
 
   const u = HN.utils;
-  const AUTO_REFRESH_MS = 5 * 60 * 1000;
   const REQUEST_TIMEOUT_MS = 75 * 1000;
   const API = "api/source";
 
@@ -56,17 +54,15 @@
   const live = {
     enabled: /^https?:$/.test(window.location.protocol),
     busy: false,
-    lastRun: 0,
 
     /**
      * Refresh every source. force=true bypasses the 5-minute CDN cache
-     * (at most one fresh fetch per source per minute).
+     * (at most one fresh fetch per source per minute). silent=true: no toast.
      */
-    refresh(force) {
+    refresh(force, silent) {
       if (!live.enabled) { window.location.reload(); return Promise.resolve(); }
       if (live.busy) return Promise.resolve();
       live.busy = true;
-      live.lastRun = Date.now();
 
       const base = u.data || { sources: [], jobs: [], advertisements: [], newDepartments: [] };
       const next = {
@@ -124,30 +120,22 @@
         return { ok: 0, failed: ["all"], total: 0 };
       }).then(function (result) {
         result.manual = !!force;
+        result.silent = !!silent;
         live.busy = false;
         emit("hn:refresh-end", result);
         return result;
       });
     },
 
-    /** Auto-refresh loop: every 5 minutes while the tab is visible. */
-    start() {
+    /** First visit in this tab session: fetch fresh jobs automatically (no toast). */
+    refreshOnFirstLoad() {
       if (!live.enabled) return;
-      const age = Date.now() - (u.data && u.data.generatedAt ? new Date(u.data.generatedAt).getTime() : 0);
-      live.lastRun = age < AUTO_REFRESH_MS ? Date.now() - age : 0;
-
-      function tick() {
-        if (document.visibilityState === "visible" && Date.now() - live.lastRun >= AUTO_REFRESH_MS) {
-          live.refresh(false);
-        }
-      }
-      setInterval(tick, 30 * 1000);
-      document.addEventListener("visibilitychange", tick);
-      tick();
-    },
-
-    nextAutoIn() {
-      return Math.max(0, AUTO_REFRESH_MS - (Date.now() - live.lastRun));
+      const KEY = "huntgovpk.loadedThisSession";
+      try { if (sessionStorage.getItem(KEY)) return; } catch (e) { /* storage blocked: just refresh */ }
+      // Mark done only after it finishes, so leaving the page mid-refresh retries on the next page.
+      live.refresh(true, true).then(function (r) {
+        if (r && r.ok) { try { sessionStorage.setItem(KEY, "1"); } catch (e) { /* ignore */ } }
+      });
     }
   };
 
