@@ -8,8 +8,8 @@
        so moving between pages doesn't refetch everything), and
      - whenever the user clicks the refresh icon next to "Updated … ago".
 
-   Opened directly from disk (file://) there is no server, so the button just
-   reloads the page to pick up a newly generated data/jobs.js.
+   Opened directly from disk (file://) there is no server to fetch through, so
+   the button explains how to start the local server (start.bat / serve.py).
 
    Events dispatched on window:
      hn:refresh-start  { total }
@@ -21,14 +21,15 @@
   "use strict";
 
   const u = HN.utils;
-  const REQUEST_TIMEOUT_MS = 75 * 1000;
+  // Generous: a source can take ~30-60 s (Vercel stops functions at 60 s anyway).
+  const REQUEST_TIMEOUT_MS = 120 * 1000;
   const API = "api/source";
 
   function emit(name, detail) { window.dispatchEvent(new CustomEvent(name, { detail: detail || {} })); }
 
-  function fetchJson(url) {
+  function fetchJson(url, timeoutMs) {
     const ctrl = typeof AbortController !== "undefined" ? new AbortController() : null;
-    const timer = setTimeout(function () { if (ctrl) ctrl.abort(); }, REQUEST_TIMEOUT_MS);
+    const timer = setTimeout(function () { if (ctrl) ctrl.abort(); }, timeoutMs || REQUEST_TIMEOUT_MS);
     return fetch(url, { signal: ctrl ? ctrl.signal : undefined, headers: { Accept: "application/json" } })
       .then(function (res) {
         const type = res.headers.get("content-type") || "";
@@ -54,13 +55,29 @@
   const live = {
     enabled: /^https?:$/.test(window.location.protocol),
     busy: false,
+    _apiCheck: null,
+
+    /**
+     * Is the Python API (/api/source) available here? True on Vercel and with
+     * start.bat / serve.py; false on static-only servers such as VS Code Live
+     * Server or file://. Checked once per page.
+     */
+    hasApi() {
+      if (!live.enabled) return Promise.resolve(false);
+      if (!live._apiCheck) {
+        live._apiCheck = fetchJson(API, 8000)
+          .then(function (r) { return !!(r && r.sources); })
+          .catch(function () { return false; });
+      }
+      return live._apiCheck;
+    },
 
     /**
      * Refresh every source. force=true bypasses the 5-minute CDN cache
      * (at most one fresh fetch per source per minute). silent=true: no toast.
      */
     refresh(force, silent) {
-      if (!live.enabled) { window.location.reload(); return Promise.resolve(); }
+      if (!live.enabled) return Promise.resolve(null);   // file:// - no server to fetch through
       if (live.busy) return Promise.resolve();
       live.busy = true;
 
@@ -132,9 +149,12 @@
       if (!live.enabled) return;
       const KEY = "huntgovpk.loadedThisSession";
       try { if (sessionStorage.getItem(KEY)) return; } catch (e) { /* storage blocked: just refresh */ }
-      // Mark done only after it finishes, so leaving the page mid-refresh retries on the next page.
-      live.refresh(true, true).then(function (r) {
-        if (r && r.ok) { try { sessionStorage.setItem(KEY, "1"); } catch (e) { /* ignore */ } }
+      live.hasApi().then(function (ok) {
+        if (!ok) return;   // static server (e.g. Live Server): keep the saved data quietly
+        // Mark done only after it finishes, so leaving the page mid-refresh retries on the next page.
+        live.refresh(true, true).then(function (r) {
+          if (r && r.ok) { try { sessionStorage.setItem(KEY, "1"); } catch (e) { /* ignore */ } }
+        });
       });
     }
   };

@@ -8,15 +8,30 @@ Real, current government jobs and official advertisement PDFs collected from off
 - `healthcare.html` — jobs at major hospitals, grouped by field (Computer Science & IT first, then Medical, Nursing, Pharmacy, Research, Management)
 - `advertisements.html` — official advertisement PDFs, addendums and notices, plus the "new departments" watch list
 
+## Run it locally
+Needs only **Python 3.8+** — nothing to install (standard library only).
+
+```bash
+npm run dev               # http://localhost:3000/index.html  (opens your browser)
+npm run dev -- 4000       # another port
+npm run dev:nobrowser     # don't open a browser tab
+npm run fetch             # refresh the bundled snapshot data/jobs.js
+```
+`npm run dev` starts the one server the site needs: `serve.py`, which serves the pages **and** the Python API
+(`/api/source`) that fetches jobs. The console lists every link. No `npm install` needed.
+Without Node: double-click `start.bat`, or run `python serve.py` (port 8000).
+If the port is busy, the next free one is used. Don't use VS Code Live Server: it can't run Python, so refresh won't work.
+Locally **all 8 sources are fetched live**, including PPSC and PJP, because your connection is in Pakistan.
+
 ## How data stays fresh
 Browsers can't read other websites directly (CORS), so the scraping runs in Python
 (`scraper/fetch_jobs.py`, standard library only, Python 3.8+).
 
 | Where | How jobs are refreshed |
 | --- | --- |
-| **Vercel (production)** | **Manual only:** click the refresh icon next to "Updated … ago" in the header. The browser calls the serverless function `/api/source?id=<SOURCE>` for all sources in parallel (≈ 20–40 s). Each click fetches fresh data, but clicks within the same minute share one fetch per source on Vercel's CDN, so government sites aren't overloaded. The newest data is remembered in the browser (localStorage) for the next visit. |
-| **Local preview** | `python serve.py` → http://localhost:8000 — works exactly like Vercel (refresh icon, API, CDN-style cache). |
-| **Opening `index.html` directly** | No server, so the refresh icon just reloads the page. Update the data with the CLI below. |
+| **Local (`start.bat` / `python serve.py`)** | Fresh fetch of all 8 sources automatically on the first visit (once per browser tab), and whenever you click the refresh icon next to "Updated … ago". About 30–50 s. |
+| **Vercel (production)** | Same behaviour. 6 sources are fetched live; PPSC and PJP come from the bundled snapshot (see "Keeping PPSC & PJP fresh"). Clicks within the same minute share one fetch per source on Vercel's CDN, so government sites aren't overloaded. |
+| **Opening `index.html` directly** | Works offline from the bundled snapshot. The refresh icon explains how to start the local server. |
 
 The pages always open instantly from the bundled snapshot `data/jobs.js`, then update live.
 If a source is down, its last good data is kept and the toast says which source failed.
@@ -43,6 +58,29 @@ Things to check after the first deploy:
   from a Pakistani connection with the CLI and redeploy.
 - Every source finishes well inside 60 s (slowest ≈ 30 s). OTS has a 40 s time budget (`HN_TIME_BUDGET`) and checks
   its newest projects first. Concurrency can be tuned with the `HN_WORKERS` environment variable (default 10).
+
+## Keeping PPSC & PJP fresh
+PPSC and PJP are hosted at the Punjab IT Board data centre, which only answers requests from inside
+Pakistan. Vercel (closest region: Mumbai) can't reach them, so on Vercel these two are served from the
+bundled `data/jobs.json` and the page shows "updated N min ago" next to them (no error).
+The other six sources are fetched live from Vercel.
+
+To keep that data fresh, run `update-data.ps1` on a computer in Pakistan. It runs the scraper, commits
+**only** `data/jobs.json` + `data/jobs.js`, and pushes; Vercel redeploys within about a minute.
+
+```powershell
+# once
+powershell -ExecutionPolicy Bypass -File update-data.ps1
+
+# every 30 minutes (Windows Task Scheduler, runs while you're logged in)
+schtasks /Create /SC MINUTE /MO 30 /TN "HuntGovPk data refresh" /TR "powershell -NoProfile -WindowStyle Hidden -ExecutionPolicy Bypass -File \"<full path>\update-data.ps1\""
+
+# stop it
+schtasks /Delete /TN "HuntGovPk data refresh" /F
+```
+Output goes to `update-data.log`. Every push is a Vercel deploy; 30 minutes = 48 deploys/day, inside the
+Hobby plan's 100/day. Set the `HN_SNAPSHOT_SOURCES` environment variable on Vercel to change which sources
+are served from the snapshot (empty = try all live).
 
 ## Sources
 | Source | Jobs | Advertisements |
@@ -83,6 +121,6 @@ js/        utils.js (data + helpers) · components.js (UI) · live.js (refresh +
 api/       source.py            Vercel serverless function (live data per source)
 scraper/   fetch_jobs.py        all scraping logic (CLI + API)
 data/      jobs.js · jobs.json  bundled snapshot (generated)
-serve.py   local preview server that mimics Vercel (not deployed)
+serve.py   local server that mimics Vercel · start.bat (Windows launcher) · update-data.ps1 (not deployed)
 vercel.json · .vercelignore · requirements.txt
 ```

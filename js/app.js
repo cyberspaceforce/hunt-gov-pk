@@ -21,7 +21,14 @@
 
   function wireRefresh() {
     const btn = document.querySelector("[data-refresh]");
-    if (btn) btn.addEventListener("click", function () { live.refresh(true); });
+    if (btn) btn.addEventListener("click", function () {
+      if (live.busy) return;
+      live.hasApi().then(function (ok) {
+        if (ok) { live.refresh(true); return; }
+        // file:// or a static-only server such as VS Code Live Server: no Python to fetch with
+        ui.toast("Live refresh needs the Python server: double-click start.bat (or run python serve.py) and open http://localhost:8000", "info");
+      });
+    });
 
     window.addEventListener("hn:refresh-start", function (e) {
       setButton("busy", "Refreshing 0/" + e.detail.total);

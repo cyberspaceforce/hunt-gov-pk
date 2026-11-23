@@ -11,6 +11,15 @@ government websites are not hit on every page view.
 
 The scraping logic lives in scraper/fetch_jobs.py (bundled via vercel.json
 "includeFiles"), so the CLI and the website always use the same code.
+
+Snapshot-only sources
+---------------------
+PPSC and PJP are hosted at the Punjab IT Board data centre, which does not answer
+requests from outside Pakistan (Vercel's closest region is Mumbai). Trying them
+from Vercel only hangs ~35 s and fails, so on Vercel they are served straight from
+the bundled data/jobs.json. That file is kept fresh from a computer in Pakistan
+with update-data.ps1 (runs the scraper, commits data/, pushes -> Vercel redeploys).
+Override the list with the HN_SNAPSHOT_SOURCES env var ("" = try every source live).
 """
 import json
 import os
@@ -27,6 +36,23 @@ import fetch_jobs  # noqa: E402
 CACHE_OK = "public, max-age=0, s-maxage=300, stale-while-revalidate=600"
 # Failed fetches (site down) are cached briefly so we retry soon.
 CACHE_FAILED = "public, max-age=0, s-maxage=60"
+
+_default_snapshot = "PPSC,PJP" if os.environ.get("VERCEL") else ""
+SNAPSHOT_SOURCES = {x.strip().upper() for x in os.environ.get("HN_SNAPSHOT_SOURCES", _default_snapshot).split(",") if x.strip()}
+
+
+def snapshot_block(source_id):
+    """The source's data from the bundled data/jobs.json, marked as a snapshot."""
+    data = fetch_jobs.load_previous()
+    src = fetch_jobs.source_by_id(source_id)
+    status = next((s for s in data.get("sources", []) if s.get("id") == source_id), {})
+    return {
+        "id": source_id, "name": src["name"], "url": src["url"], "group": src.get("group", "government"),
+        "ok": bool(status.get("ok", True)), "mode": "snapshot",
+        "checkedAt": status.get("checkedAt") or data.get("generatedAt"),
+        "jobs": [j for j in data.get("jobs", []) if j.get("source") == source_id],
+        "ads": [a for a in data.get("advertisements", []) if a.get("source") == source_id],
+    }
 
 
 class handler(BaseHTTPRequestHandler):
@@ -57,7 +83,10 @@ class handler(BaseHTTPRequestHandler):
             return
 
         try:
-            block = fetch_jobs.fetch_source(source_id)
+            if source_id in SNAPSHOT_SOURCES:
+                block = snapshot_block(source_id)
+            else:
+                block = fetch_jobs.fetch_source(source_id)
         except Exception as exc:  # last-resort guard - never return an HTML error page
             self._send(500, {"id": source_id, "ok": False, "error": str(exc), "jobs": [], "ads": []}, CACHE_FAILED)
             return

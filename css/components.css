@@ -455,3 +455,4 @@ mark.hl { background: #fff1b8; color: inherit; border-radius: 2px; padding: 0 1p
 .refresh-btn.is-busy { cursor: progress; color: var(--blue-700); }
 .refresh-btn.is-busy svg { animation: hn-spin 0.9s linear infinite; }
 @keyframes hn-spin { to { transform: rotate(360deg); } }
+.source-age { font-size: 12px; color: #9fb2cf; opacity: .85; }

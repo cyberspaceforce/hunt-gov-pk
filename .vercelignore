@@ -2,3 +2,8 @@
 *.pyc
 .vscode
 serve.py
+update-data.ps1
+update-data.log
+start.bat
+package.json
+scripts/

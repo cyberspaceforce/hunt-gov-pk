@@ -116,7 +116,10 @@
     const posts = open.reduce(function (s, j) { return s + (j.posts || 0); }, 0);
     const sources = u.sources.filter(function (s) { return s.jobs && s.group !== "healthcare"; }).map(function (s) {
       return '<a href="' + esc(s.url) + '" target="_blank" rel="noopener noreferrer" title="' + esc(s.name) + '">' + esc(s.id) + "</a>" +
-        (s.ok ? "" : ' <span class="badge badge-closing">not updated — showing earlier data</span>');
+        (!s.ok ? ' <span class="badge badge-closing">not updated — showing earlier data</span>'
+          : s.mode === "snapshot" && s.checkedAt
+            ? ' <span class="source-age" title="This site only answers from inside Pakistan, so it is synced from there">updated ' + esc(u.relativeTime(s.checkedAt)) + "</span>"
+            : "");
     }).join(", ");
 
     els.summary.innerHTML =
@@ -127,11 +130,11 @@
       '<span class="hero-stat">' + ui.icon("file-text") + '<a href="advertisements.html">' + u.ads.length + " official advertisements</a></span>" +
       '<span class="hero-stat">' + ui.icon("clock") + "Fetched " + esc(u.formatDateTime(u.data.generatedAt)) + "</span>";
 
-    if (u.dataAgeHours() > 24) {
-      els.stale.hidden = false;
+    els.stale.hidden = u.dataAgeHours() <= 24;
+    if (!els.stale.hidden) {
       els.stale.innerHTML = ui.icon("triangle-alert") +
         "<div><strong>This data was fetched " + esc(u.relativeTime(u.data.generatedAt)) + ".</strong> " +
-        "Run <code>python scraper/fetch_jobs.py</code> to pull the latest advertisements from the official websites.</div>";
+        "Click the refresh icon at the top right to pull the latest jobs from the official websites.</div>";
     }
   }
 
